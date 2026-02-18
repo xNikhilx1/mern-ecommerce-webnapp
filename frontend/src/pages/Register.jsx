@@ -17,7 +17,11 @@ function Register() {
     e.preventDefault();
 
     try {
-      const res = await axios.post("http://localhost:5000/register", form);
+      const res = await axios.post(
+        "https://webnapp-backend.onrender.com/register",
+        form,
+      );
+;
       alert(res.data.message);
     } catch (error) {
       alert(error.response?.data?.message || "Registration failed ❌");

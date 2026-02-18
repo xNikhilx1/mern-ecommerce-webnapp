@@ -3,13 +3,15 @@ import axios from "axios";
 import "./Products.css";
 import Swal from "sweetalert2";
 
+const API_URL = "https://webnapp-backend.onrender.com";
+
 function Products() {
   const [products, setProducts] = useState([]);
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const res = await axios.get("http://localhost:5000/products");
+        const res = await axios.get(`${API_URL}/products`);
         setProducts(res.data);
       } catch (error) {
         console.log("Error fetching products ❌", error);
@@ -30,18 +32,15 @@ function Products() {
           icon: "warning",
           background: "#111",
           color: "#fff",
-          confirmButtonColor: "#ff6ec4",
+          confirmButtonColor: "#ffffff",
         });
         return;
       }
 
       // Create Razorpay order
-      const orderRes = await axios.post(
-        "http://localhost:5000/create-payment-order",
-        {
-          amount: product.price,
-        },
-      );
+      const orderRes = await axios.post(`${API_URL}/create-payment-order`, {
+        amount: product.price,
+      });
 
       const razorpayOrder = orderRes.data;
 
@@ -55,7 +54,7 @@ function Products() {
 
         handler: async function () {
           await axios.post(
-            "http://localhost:5000/place-order",
+            `${API_URL}/place-order`,
             {
               products: [
                 {
@@ -77,12 +76,12 @@ function Products() {
             icon: "success",
             background: "#111",
             color: "#fff",
-            confirmButtonColor: "#ff6ec4",
+            confirmButtonColor: "#ffffff",
           });
         },
 
         theme: {
-          color: "#ff6ec4",
+          color: "#000000",
         },
       };
 
@@ -92,17 +91,13 @@ function Products() {
       console.log(error);
 
       Swal.fire({
-        title: "Payment Successful",
-        text: "Your order has been placed successfully.",
-        icon: "success",
-        background: "#121212",
-        color: "#ffffff",
+        title: "Payment Failed ❌",
+        text: "Something went wrong. Please try again.",
+        icon: "error",
+        background: "#111",
+        color: "#fff",
         confirmButtonColor: "#ffffff",
-        customClass: {
-          popup: "minimal-popup",
-        },
       });
-
     }
   };
 
