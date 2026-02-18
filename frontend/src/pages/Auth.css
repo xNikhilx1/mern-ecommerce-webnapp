@@ -1,0 +1,97 @@
+body {
+  margin: 0;
+  padding: 0;
+  background: #000;
+  font-family: 'Poppins', sans-serif;
+  color: #fff;
+}
+
+/* Center Big Logo */
+.logo-container {
+  text-align: center;
+  margin-top: 60px;
+}
+
+.main-logo {
+  font-size: 70px;
+  font-weight: 700;
+  letter-spacing: 4px;
+  color: #ffffff;
+}
+
+/* Center Login */
+.auth-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 65vh;
+}
+
+/* Card */
+.auth-card {
+  background: #111;
+  padding: 40px;
+  width: 350px;
+  border-radius: 20px;
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.05);
+  transition: 0.3s ease;
+}
+
+.auth-card:hover {
+  box-shadow: 0 0 30px rgba(255, 255, 255, 0.08);
+}
+
+.auth-card h2 {
+  text-align: center;
+  margin-bottom: 30px;
+  font-size: 28px;
+}
+
+/* Inputs */
+.auth-card input {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 20px;
+  border-radius: 8px;
+  border: 1px solid #333;
+  background: #000;
+  color: white;
+  outline: none;
+  transition: 0.3s;
+}
+
+.auth-card input:focus {
+  border: 1px solid white;
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.2);
+}
+
+/* Button */
+.auth-card button {
+  width: 100%;
+  padding: 12px;
+  border-radius: 30px;
+  border: none;
+  background: white;
+  color: black;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.3s ease;
+}
+
+.auth-card button:hover {
+  background: #e6e6e6;
+}
+.auth-card {
+  animation: fadeIn 0.6s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { 
+    opacity: 0; 
+    transform: translateY(15px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0); 
+  }
+}
