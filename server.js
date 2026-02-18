@@ -3,8 +3,8 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const bcrypt = require("bcrypt");
 const Razorpay = require("razorpay");
-const nodemailer = require("nodemailer");
 const jwt = require("jsonwebtoken");
+const { Resend } = require("resend");
 const auth = require("./middleware/auth");
 require("dotenv").config();
 
@@ -13,6 +13,9 @@ const Product = require("./models/Product");
 const Order = require("./models/Order");
 
 const app = express();
+
+// ================= RESEND SETUP =================
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 // ================= MIDDLEWARE =================
 app.use(cors());
@@ -30,38 +33,9 @@ const razorpay = new Razorpay({
   key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
 
-// ================= NODEMAILER SETUP =================
-const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 587,
-  secure: false, // important for Render
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
-
-
 // ================= ROOT ROUTE =================
 app.get("/", (req, res) => {
   res.send("Server is running 🚀");
-});
-
-// ================= TEST EMAIL ROUTE =================
-app.get("/test-email", async (req, res) => {
-  try {
-    await transporter.sendMail({
-      from: process.env.EMAIL_USER,
-      to: process.env.EMAIL_USER,
-      subject: "Test Email from WebnApp",
-      text: "If you received this email, Nodemailer is working correctly!",
-    });
-
-    res.send("Test email sent successfully ✅");
-  } catch (error) {
-    console.log("Email error ❌", error);
-    res.status(500).send("Email failed ❌");
-  }
 });
 
 // ================= REGISTER =================
@@ -179,26 +153,22 @@ app.post("/place-order", auth, async (req, res) => {
 
     await newOrder.save();
 
-    // 🔥 SEND EMAIL TO USER
+    // 🔥 SEND EMAIL USING RESEND
     const user = await User.findById(userId);
 
     if (user) {
-      await transporter.sendMail({
-        from: process.env.EMAIL_USER,
+      await resend.emails.send({
+        from: "onboarding@resend.dev",
         to: user.email,
         subject: "Order Confirmation 🛒 - WebnApp",
-        text: `
-Hi ${user.name},
-
-Your order has been placed successfully!
-
-Order ID: ${newOrder._id}
-Total Amount: ₹${totalAmount}
-
-Thank you for shopping with WebnApp!
-
-- Nikhil
-`,
+        html: `
+          <h3>Hi ${user.name},</h3>
+          <p>Your order has been placed successfully!</p>
+          <p><strong>Order ID:</strong> ${newOrder._id}</p>
+          <p><strong>Total Amount:</strong> ₹${totalAmount}</p>
+          <br/>
+          <p>Thank you for shopping with WebnApp!</p>
+        `,
       });
     }
 
