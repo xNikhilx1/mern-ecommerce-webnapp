@@ -15,43 +15,30 @@ const Order = require("./models/Order");
 
 const app = express();
 
-/* ================= CORS CONFIGURATION ================= */
-app.use(
-  cors({
-    origin: [
-      "http://localhost:5173",
-      "https://mern-ecommerce-webnapp.vercel.app",
-    ],
-    credentials: true,
-  }),
-);
-
+// ================= INITIAL SETUP =================
+app.use(cors());
 app.use(express.json());
 
-/* ================= DATABASE ================= */
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => console.log("MongoDB Connected ✅"))
   .catch((err) => console.log("MongoDB Error ❌", err));
 
-/* ================= RAZORPAY ================= */
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
   key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
 
-/* ================= RESEND ================= */
 let resend = null;
 if (process.env.RESEND_API_KEY) {
   resend = new Resend(process.env.RESEND_API_KEY);
 }
 
-/* ================= ROOT ================= */
 app.get("/", (req, res) => {
   res.send("Server running 🚀");
 });
 
-/* ================= REGISTER ================= */
+// ================= REGISTER =================
 app.post("/register", async (req, res) => {
   try {
     const { name, email, password } = req.body;
@@ -76,7 +63,7 @@ app.post("/register", async (req, res) => {
   }
 });
 
-/* ================= LOGIN ================= */
+// ================= LOGIN =================
 app.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -107,13 +94,74 @@ app.post("/login", async (req, res) => {
   }
 });
 
-/* ================= PRODUCTS ================= */
+// ================= FORGOT PASSWORD =================
+app.post("/forgot-password", async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    const user = await User.findOne({ email });
+    if (!user)
+      return res.status(400).json({ message: "User not found ❌" });
+
+    const resetToken = crypto.randomBytes(32).toString("hex");
+
+    user.resetToken = resetToken;
+    user.resetTokenExpiry = Date.now() + 15 * 60 * 1000; // 15 min
+    await user.save();
+    console.log("FRONTEND_URL value:", process.env.FRONTEND_URL);
+    const resetLink = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
+
+    await resend.emails.send({
+      from: "WebnApp <onboarding@resend.dev>",
+      to: user.email,
+      subject: "Reset Your Password",
+      html: `
+        <h2>Password Reset</h2>
+        <p>Click the link below to reset your password:</p>
+        <a href="${resetLink}">${resetLink}</a>
+        <p>This link expires in 15 minutes.</p>
+      `,
+    });
+
+    res.json({ message: "Reset link sent to email ✅" });
+  } catch (error) {
+    res.status(500).json({ message: "Server error ❌" });
+  }
+});
+// ================= RESET PASSWORD =================
+app.post("/reset-password/:token", async (req, res) => {
+  try {
+    const { token } = req.params;
+    const { password } = req.body;
+
+    const user = await User.findOne({
+      resetToken: token,
+      resetTokenExpiry: { $gt: Date.now() },
+    });
+
+    if (!user)
+      return res.status(400).json({ message: "Invalid or expired token ❌" });
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    user.password = hashedPassword;
+    user.resetToken = undefined;
+    user.resetTokenExpiry = undefined;
+
+    await user.save();
+
+    res.json({ message: "Password reset successful ✅" });
+  } catch (error) {
+    res.status(500).json({ message: "Server error ❌" });
+  }
+});
+// ================= PRODUCTS =================
 app.get("/products", async (req, res) => {
   const products = await Product.find();
   res.json(products);
 });
 
-/* ================= CREATE PAYMENT ================= */
+// ================= CREATE PAYMENT =================
 app.post("/create-payment-order", async (req, res) => {
   try {
     const { amount } = req.body;
@@ -130,7 +178,7 @@ app.post("/create-payment-order", async (req, res) => {
   }
 });
 
-/* ================= VERIFY PAYMENT ================= */
+// ================= VERIFY PAYMENT =================
 app.post("/verify-payment", auth, async (req, res) => {
   try {
     const {
@@ -153,7 +201,7 @@ app.post("/verify-payment", auth, async (req, res) => {
       totalAmount += product.price * item.quantity;
     }
 
-    /* ================= COD ================= */
+    // ================= COD =================
     if (paymentMethod === "COD") {
       const newOrder = new Order({
         userId,
@@ -169,7 +217,7 @@ app.post("/verify-payment", auth, async (req, res) => {
       return res.json({ message: "COD Order placed ✅" });
     }
 
-    /* ================= RAZORPAY ================= */
+    // ================= RAZORPAY =================
     const generatedSignature = crypto
       .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
       .update(razorpay_order_id + "|" + razorpay_payment_id)
@@ -194,16 +242,38 @@ app.post("/verify-payment", auth, async (req, res) => {
 
     await newOrder.save();
 
-    /* ================= EMAIL ================= */
+    // ================= SEND EMAIL =================
     if (resend) {
       const user = await User.findById(userId);
+
+      const productList = products
+        .map(
+          (item) =>
+            `<li>Product ID: ${item.productId} | Quantity: ${item.quantity}</li>`,
+        )
+        .join("");
 
       const htmlContent = `
         <div style="font-family: Arial; padding: 20px;">
           <h2>Order Confirmation</h2>
           <p>Hi ${user.name},</p>
           <p>Your order has been successfully placed.</p>
+
+          <h3>Order Details:</h3>
+          <ul>${productList}</ul>
+
           <p><strong>Total Amount:</strong> ₹${totalAmount}</p>
+
+          <h3>Delivery Address:</h3>
+          <p>
+            ${shippingAddress.fullName}<br/>
+            ${shippingAddress.addressLine}<br/>
+            ${shippingAddress.city}, ${shippingAddress.state} - ${shippingAddress.pincode}<br/>
+            Phone: ${shippingAddress.phone}
+          </p>
+
+          <p><strong>Payment ID:</strong> ${razorpay_payment_id}</p>
+
           <hr/>
           <p>Thank you for shopping with WebnApp ❤️</p>
         </div>
@@ -215,6 +285,13 @@ app.post("/verify-payment", auth, async (req, res) => {
         subject: "Your Order Confirmation - WebnApp",
         html: htmlContent,
       });
+
+      await resend.emails.send({
+        from: "WebnApp <onboarding@resend.dev>",
+        to: process.env.OWNER_EMAIL,
+        subject: "New Order Received",
+        html: `<p>New order placed by ${user.email} - ₹${totalAmount}</p>`,
+      });
     }
 
     res.json({ message: "Order placed successfully ✅" });
@@ -224,7 +301,7 @@ app.post("/verify-payment", auth, async (req, res) => {
   }
 });
 
-/* ================= MY ORDERS ================= */
+// ================= MY ORDERS =================
 app.get("/my-orders", auth, async (req, res) => {
   const orders = await Order.find({ userId: req.user.id }).sort({
     createdAt: -1,
@@ -232,6 +309,6 @@ app.get("/my-orders", auth, async (req, res) => {
   res.json(orders);
 });
 
-/* ================= START SERVER ================= */
+// ================= START SERVER =================
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on ${PORT}`));
