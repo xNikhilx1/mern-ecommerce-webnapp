@@ -1,10 +1,234 @@
-html, body, #root {
-  height: 100%;
+/* ===== RESET ===== */
+* {
   margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
+/* ===== ROOT ===== */
+html, body, #root {
+  margin: 0 !important;
+  padding: 0 !important;
+  width: 100%;
+  height: 100%;
+  background: #0f0f0f;
+}
+
+
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* ===== BODY ===== */
 body {
-  background-color: #000000;
+  font-family: "Inter", "Poppins", sans-serif;
+  background-color: #0f0f0f;
+  color: #ffffff;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ===== GLOBAL CONTAINER ===== */
+.app-container {
+  width: 100%;
+  min-height: 100vh;
+}
+
+/* ===== LINKS ===== */
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* ===== BUTTON BASE ===== */
+button {
+  cursor: pointer;
+  border: none;
+  outline: none;
+  font-family: inherit;
+  transition: all 0.3s ease;
+}
+
+/* ===== SMOOTH TRANSITIONS ===== */
+.card,
+button,
+input,
+textarea {
+  transition: all 0.3s ease;
+}
+
+/* ===== INPUT STYLING ===== */
+input,
+textarea {
+  background-color: #1a1a1a;
+  border: 1px solid #2a2a2a;
   color: white;
-  font-family: "Poppins", sans-serif;
+  padding: 10px 14px;
+  border-radius: 8px;
+}
+
+input:focus,
+textarea:focus {
+  border-color: #ffffff;
+}
+
+/* ===== SCROLLBAR ===== */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #111;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+.main-content {
+  padding-top: 80px; /* only if header is fixed */
+  padding-bottom: 70px;
+}
+
+/* ================================================= */
+/* =============== RESPONSIVE ====================== */
+/* ================================================= */
+
+/* ---------- Large Tablets (1024px) ---------- */
+@media (max-width: 1024px) {
+
+  .products-grid {
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 20px;
+  }
+
+  .featured-grid {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  }
+
+  .search-container {
+    width: 55%;
+  }
+
+}
+
+
+/* ---------- Tablets (768px) ---------- */
+@media (max-width: 768px) {
+
+  /* HEADER */
+  .search-container {
+    display: none;
+  }
+
+  .navbar,
+  .header-inner {
+    padding: 14px 4%;
+  }
+
+  /* PRODUCTS */
+  .products-container {
+    padding: 100px 4%;
+  }
+
+  .products-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .product-image {
+    height: 180px;
+  }
+
+  /* HERO */
+  .hero-section {
+    height: 350px;
+  }
+
+  .hero-content h1 {
+    font-size: 30px;
+  }
+
+  /* CATEGORY STRIP */
+  .category-strip {
+    flex-wrap: wrap;
+    gap: 15px;
+  }
+
+  .category-card {
+    min-width: 120px;
+    padding: 18px;
+  }
+
+}
+
+
+/* ---------- Mobile (480px) ---------- */
+@media (max-width: 480px) {
+
+  /* PRODUCTS */
+  .products-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .products-container h2 {
+    font-size: 22px;
+  }
+
+  .product-card {
+    padding: 15px;
+  }
+
+  .product-image {
+    height: 160px;
+  }
+
+  /* HERO */
+  .hero-section {
+    height: 280px;
+    padding: 0 5%;
+  }
+
+  .hero-content h1 {
+    font-size: 24px;
+  }
+
+  .hero-content p {
+    font-size: 14px;
+  }
+
+  .hero-btn {
+    padding: 10px 22px;
+  }
+
+  /* CATEGORY STRIP */
+  .category-strip {
+    padding: 20px 4%;
+  }
+
+  .category-card {
+    padding: 15px;
+  }
+
+  /* CART DRAWER */
+  .cart-drawer {
+    width: 100%;
+  }
+
+  /* SIDE DRAWER */
+  .side-drawer {
+    width: 85%;
+  }
+
+  /* SUCCESS PAGE */
+  .success-card,
+  .card {
+    width: 95% !important;
+    padding: 30px !important;
+  }
+
 }

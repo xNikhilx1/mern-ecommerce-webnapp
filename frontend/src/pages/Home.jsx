@@ -1,49 +1,57 @@
+import { useEffect, useState } from "react";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import AdSlider from "../components/AdSlider";
+import CategoryStrip from "../components/CategoryStrip";
+
 import "./Home.css";
 
+const API_URL = "https://webnapp-backend.onrender.com";
+
 function Home() {
+  const [products, setProducts] = useState([]);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const res = await axios.get(`${API_URL}/products`);
+        setProducts(res.data.slice(0, 4));
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
+    fetchProducts();
+  }, []);
+
   return (
-    <div className="home-container">
-      {/* Hero Section */}
-      <section className="hero">
-        <h1>Welcome to WebnApp</h1>
-        <p>
-          A modern full-stack web application built with passion, performance,
-          and premium UI design.
-        </p>
-      </section>
+    <div className="home-wrapper">
+      <AdSlider />
+      <CategoryStrip />
+      {/* FEATURED */}
+      <section className="featured-section">
+        <h2 className="section-title">Featured Products</h2>
 
-      {/* About WebnApp */}
-      <section className="about-section">
-        <h2>About WebnApp</h2>
-        <p>
-          WebnApp is a secure and scalable full-stack web platform built using
-          React, Node.js, MongoDB, and Razorpay integration. It demonstrates
-          authentication, payment integration, product management, and a premium
-          dark UI experience.
-        </p>
+        <div className="featured-grid">
+          {products.map((product) => (
+            <div
+              key={product._id}
+              className="featured-card"
+              onClick={() => navigate("/products")}
+            >
+              <img src={product.image} alt={product.name} />
+              <h3>{product.name}</h3>
+              <p>₹ {product.price}</p>
+            </div>
+          ))}
+        </div>
 
-        <p>
-          This project showcases modern development practices including: JWT
-          Authentication, Protected Routes, Payment Gateway Integration, REST
-          APIs, and Responsive UI Design.
-        </p>
-      </section>
-
-      {/* About Developer */}
-      <section className="developer-section">
-        <h2>About the Developer</h2>
-        <p>
-          WebnApp was designed and developed by <strong>Nikhil</strong>, a
-          passionate full-stack developer focused on building modern, secure,
-          and scalable web applications.
-        </p>
-
-        <p>
-          With strong knowledge in React, Node.js, MongoDB, and real-world
-          backend architecture, Nikhil aims to create production-ready
-          applications with clean design and optimized performance.
-        </p>
-        <p className="signature">Crafted with dedication by Nikhil</p>
+        <div className="view-all">
+          <button onClick={() => navigate("/products")}>
+            View All Products
+          </button>
+        </div>
       </section>
     </div>
   );

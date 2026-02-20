@@ -1,0 +1,90 @@
+import { createContext, useContext, useState, useEffect } from "react";
+
+const CartContext = createContext();
+
+export const CartProvider = ({ children }) => {
+  const [cart, setCart] = useState([]);
+  const [wishlist, setWishlist] = useState([]);
+  const [token, setToken] = useState(localStorage.getItem("token"));
+
+  // 🔥 Listen for token changes
+  useEffect(() => {
+    const handleStorageChange = () => {
+      setToken(localStorage.getItem("token"));
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
+  }, []);
+
+  // Also update when page loads
+  useEffect(() => {
+    setToken(localStorage.getItem("token"));
+  }, []);
+
+  const addToCart = (product) => {
+    if (!token) return false;
+
+    setCart((prevCart) => {
+      const exists = prevCart.find((item) => item._id === product._id);
+
+      if (exists) {
+        return prevCart.map((item) =>
+          item._id === product._id
+            ? { ...item, quantity: item.quantity + 1 }
+            : item,
+        );
+      } else {
+        return [...prevCart, { ...product, quantity: 1 }];
+      }
+    });
+
+    return true;
+  };
+
+  const removeFromCart = (id) => {
+    setCart((prevCart) => prevCart.filter((item) => item._id !== id));
+  };
+
+  const clearCart = () => {
+    setCart([]);
+  };
+
+  const getTotal = () => {
+    return cart.reduce((acc, item) => acc + item.price * item.quantity, 0);
+  };
+
+  const toggleWishlist = (product) => {
+    if (!token) return false;
+
+    setWishlist((prevWishlist) => {
+      const exists = prevWishlist.find((item) => item._id === product._id);
+
+      if (exists) {
+        return prevWishlist.filter((item) => item._id !== product._id);
+      } else {
+        return [...prevWishlist, product];
+      }
+    });
+
+    return true;
+  };
+
+  return (
+    <CartContext.Provider
+      value={{
+        cart,
+        wishlist,
+        addToCart,
+        removeFromCart,
+        clearCart,
+        getTotal,
+        toggleWishlist,
+      }}
+    >
+      {children}
+    </CartContext.Provider>
+  );
+};
+
+export const useCart = () => useContext(CartContext);

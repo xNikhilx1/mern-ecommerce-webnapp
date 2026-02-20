@@ -7,6 +7,7 @@ const orderSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
+
     products: [
       {
         productId: {
@@ -16,13 +17,33 @@ const orderSchema = new mongoose.Schema(
         quantity: Number,
       },
     ],
+
     totalAmount: {
       type: Number,
       required: true,
     },
+
+    shippingAddress: {
+      fullName: String,
+      phone: String,
+      address: String,
+      city: String,
+      state: String,
+      pincode: String,
+    },
+
     paymentStatus: {
       type: String,
-      default: "Pending",
+      default: "Paid",
+    },
+
+    orderStatus: {
+      type: String,
+      default: "Processing",
+    },
+
+    paymentId: {
+      type: String,
     },
   },
   { timestamps: true },
