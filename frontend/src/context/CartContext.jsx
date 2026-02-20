@@ -1,29 +1,18 @@
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useState } from "react";
 
 const CartContext = createContext();
 
 export const CartProvider = ({ children }) => {
   const [cart, setCart] = useState([]);
   const [wishlist, setWishlist] = useState([]);
-  const [token, setToken] = useState(localStorage.getItem("token"));
 
-  // 🔥 Listen for token changes
-  useEffect(() => {
-    const handleStorageChange = () => {
-      setToken(localStorage.getItem("token"));
-    };
-
-    window.addEventListener("storage", handleStorageChange);
-    return () => window.removeEventListener("storage", handleStorageChange);
-  }, []);
-
-  // Also update when page loads
-  useEffect(() => {
-    setToken(localStorage.getItem("token"));
-  }, []);
+  // 🔥 IMPORTANT: Always read token directly when needed
+  const isAuthenticated = () => {
+    return !!localStorage.getItem("token");
+  };
 
   const addToCart = (product) => {
-    if (!token) return false;
+    if (!isAuthenticated()) return false;
 
     setCart((prevCart) => {
       const exists = prevCart.find((item) => item._id === product._id);
@@ -55,7 +44,7 @@ export const CartProvider = ({ children }) => {
   };
 
   const toggleWishlist = (product) => {
-    if (!token) return false;
+    if (!isAuthenticated()) return false;
 
     setWishlist((prevWishlist) => {
       const exists = prevWishlist.find((item) => item._id === product._id);

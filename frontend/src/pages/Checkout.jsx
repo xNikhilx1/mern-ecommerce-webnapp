@@ -3,7 +3,7 @@ import { useCart } from "../context/CartContext";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
-const API_URL = "https://webnapp-backend.onrender.com";
+const API_URL = "http://localhost:5000";
 
 function Checkout() {
   const { cart, getTotal, clearCart } = useCart();

@@ -18,7 +18,7 @@ function Register() {
     setSuccess("");
 
     try {
-      await axios.post("https://webnapp-backend.onrender.com/register", {
+      await axios.post("http://localhost:5000/register", {
         name,
         email,
         password,

@@ -6,7 +6,11 @@ import { FaHeart, FaStar } from "react-icons/fa";
 import { useNavigate, useLocation } from "react-router-dom";
 import Toast from "../components/Toast";
 
-const API_URL = "https://webnapp-backend.onrender.com";
+// 🔥 IMPORTANT — use Render backend in production
+const API_URL =
+  import.meta.env.MODE === "development"
+    ? "http://localhost:5000"
+    : "https://webnapp-backend.onrender.com";
 
 function Products() {
   const [products, setProducts] = useState([]);
@@ -16,11 +20,9 @@ function Products() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // 🔥 Extract category from URL
   const queryParams = new URLSearchParams(location.search);
   const selectedCategory = queryParams.get("category");
 
-  // 🔥 Re-fetch when category changes
   useEffect(() => {
     const fetchProducts = async () => {
       try {
@@ -32,9 +34,8 @@ function Products() {
     };
 
     fetchProducts();
-  }, [location.search]); // VERY IMPORTANT
+  }, [location.search]);
 
-  // 🔥 Filter safely
   const filteredProducts =
     selectedCategory && selectedCategory !== "all"
       ? products.filter(

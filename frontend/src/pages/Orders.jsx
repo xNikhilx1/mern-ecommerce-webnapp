@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 
-const API_URL = "https://webnapp-backend.onrender.com";
+const API_URL = "http://localhost:5000";
 
 function Orders() {
   const [orders, setOrders] = useState([]);
