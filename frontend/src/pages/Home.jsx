@@ -6,7 +6,7 @@ import CategoryStrip from "../components/CategoryStrip";
 
 import "./Home.css";
 
-const API_URL = "http://localhost:5000";
+const API_URL = "https://webnapp-backend.onrender.com";
 
 function Home() {
   const [products, setProducts] = useState([]);

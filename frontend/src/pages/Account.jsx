@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
-const API = "http://localhost:5000";
+const API_URL = "https://webnapp-backend.onrender.com";
 
 function Account() {
   const navigate = useNavigate();
