@@ -8,8 +8,10 @@ import Account from "./pages/Account";
 import Wishlist from "./pages/Wishlist";
 import Login from "./pages/Login";
 import Cart from "./pages/Cart";
-import Checkout from "./pages/Checkout"; // ✅ ADD THIS
+import Checkout from "./pages/Checkout"; 
 import MainLayout from "./layout/MainLayout";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
@@ -17,6 +19,8 @@ function App() {
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/reset-password/:token" element={<ResetPassword />} />
 
       <Route element={<MainLayout />}>
         <Route path="/" element={<Home />} />

@@ -14,8 +14,6 @@ html, body, #root {
   background: #0f0f0f;
 }
 
-
-
 html {
   scroll-behavior: smooth;
 }
@@ -29,18 +27,6 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* ===== GLOBAL CONTAINER ===== */
-.app-container {
-  width: 100%;
-  min-height: 100vh;
-}
-
-/* ===== LINKS ===== */
-a {
-  text-decoration: none;
-  color: inherit;
-}
-
 /* ===== BUTTON BASE ===== */
 button {
   cursor: pointer;
@@ -50,185 +36,76 @@ button {
   transition: all 0.3s ease;
 }
 
-/* ===== SMOOTH TRANSITIONS ===== */
-.card,
-button,
-input,
-textarea {
-  transition: all 0.3s ease;
-}
-
-/* ===== INPUT STYLING ===== */
-input,
-textarea {
-  background-color: #1a1a1a;
-  border: 1px solid #2a2a2a;
-  color: white;
-  padding: 10px 14px;
-  border-radius: 8px;
-}
-
-input:focus,
-textarea:focus {
-  border-color: #ffffff;
-}
-
 /* ===== SCROLLBAR ===== */
 ::-webkit-scrollbar {
   width: 8px;
 }
-
 ::-webkit-scrollbar-track {
   background: #111;
 }
-
 ::-webkit-scrollbar-thumb {
   background: #333;
   border-radius: 10px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #555;
-}
-.main-content {
-  padding-top: 80px; /* only if header is fixed */
-  padding-bottom: 70px;
 }
 
 /* ================================================= */
 /* =============== RESPONSIVE ====================== */
 /* ================================================= */
 
-/* ---------- Large Tablets (1024px) ---------- */
-@media (max-width: 1024px) {
-
-  .products-grid {
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 20px;
-  }
-
-  .featured-grid {
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  }
-
-  .search-container {
-    width: 55%;
-  }
-
-}
-
-
-/* ---------- Tablets (768px) ---------- */
 @media (max-width: 768px) {
-
-  /* HEADER */
-  .search-container {
-    display: none;
-  }
-
-  .navbar,
-  .header-inner {
-    padding: 14px 4%;
-  }
-
-  /* PRODUCTS */
-  .products-container {
-    padding: 100px 4%;
-  }
-
   .products-grid {
     grid-template-columns: repeat(2, 1fr);
   }
-
-  .product-image {
-    height: 180px;
-  }
-
-  /* HERO */
-  .hero-section {
-    height: 350px;
-  }
-
-  .hero-content h1 {
-    font-size: 30px;
-  }
-
-  /* CATEGORY STRIP */
-  .category-strip {
-    flex-wrap: wrap;
-    gap: 15px;
-  }
-
-  .category-card {
-    min-width: 120px;
-    padding: 18px;
-  }
-
 }
 
-
-/* ---------- Mobile (480px) ---------- */
 @media (max-width: 480px) {
-
-  /* PRODUCTS */
   .products-grid {
     grid-template-columns: 1fr;
   }
+}
 
-  .products-container h2 {
-    font-size: 22px;
-  }
+/* ================================================= */
+/* =========== SWEETALERT FINAL FIX =============== */
+/* ================================================= */
 
-  .product-card {
-    padding: 15px;
-  }
+.swal2-popup {
+  background: #111 !important;
+  border-radius: 20px !important;
+  padding: 50px !important;
+  border: 1px solid #222 !important;
+}
 
-  .product-image {
-    height: 160px;
-  }
+.swal2-title {
+  color: #ffffff !important;
+}
 
-  /* HERO */
-  .hero-section {
-    height: 280px;
-    padding: 0 5%;
-  }
+.swal2-html-container {
+  color: #cccccc !important;
+}
 
-  .hero-content h1 {
-    font-size: 24px;
-  }
+/* Button container */
+.swal2-actions {
+  display: flex !important;
+  justify-content: center !important;
+  gap: 20px !important;
+  margin-top: 30px !important;
+}
 
-  .hero-content p {
-    font-size: 14px;
-  }
+/* Login button */
+.swal2-confirm {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+  padding: 14px 32px !important;
+  border-radius: 10px !important;
+  font-weight: 600 !important;
+  border: none !important;
+}
 
-  .hero-btn {
-    padding: 10px 22px;
-  }
-
-  /* CATEGORY STRIP */
-  .category-strip {
-    padding: 20px 4%;
-  }
-
-  .category-card {
-    padding: 15px;
-  }
-
-  /* CART DRAWER */
-  .cart-drawer {
-    width: 100%;
-  }
-
-  /* SIDE DRAWER */
-  .side-drawer {
-    width: 85%;
-  }
-
-  /* SUCCESS PAGE */
-  .success-card,
-  .card {
-    width: 95% !important;
-    padding: 30px !important;
-  }
-
+/* Maybe Later button */
+.swal2-cancel {
+  background-color: #1f1f1f !important;
+  color: #ffffff !important;
+  padding: 14px 32px !important;
+  border-radius: 10px !important;
+  border: 1px solid #333 !important;
 }

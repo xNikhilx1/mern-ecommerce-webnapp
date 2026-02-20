@@ -5,8 +5,9 @@ import { useCart } from "../context/CartContext";
 import { FaHeart, FaStar } from "react-icons/fa";
 import { useNavigate, useLocation } from "react-router-dom";
 import Toast from "../components/Toast";
+import Swal from "sweetalert2";
 
-// 🔥 IMPORTANT — use Render backend in production
+// 🔥 Backend URL (Dev + Production)
 const API_URL =
   import.meta.env.MODE === "development"
     ? "http://localhost:5000"
@@ -23,6 +24,7 @@ function Products() {
   const queryParams = new URLSearchParams(location.search);
   const selectedCategory = queryParams.get("category");
 
+  // Fetch products
   useEffect(() => {
     const fetchProducts = async () => {
       try {
@@ -36,6 +38,7 @@ function Products() {
     fetchProducts();
   }, [location.search]);
 
+  // Category filter
   const filteredProducts =
     selectedCategory && selectedCategory !== "all"
       ? products.filter(
@@ -45,24 +48,51 @@ function Products() {
         )
       : products;
 
+  // ✅ Add To Cart
   const handleAddToCart = (product) => {
     const success = addToCart(product);
 
     if (!success) {
-      setToastMessage("Please login to add items to cart.");
-      setTimeout(() => navigate("/login"), 1200);
+      Swal.fire({
+        title: "Sign In Required",
+        text: "Please sign in to access this feature.",
+        icon: "info",
+        background: "#111",
+        color: "#ffffff",
+        showCancelButton: true,
+        confirmButtonText: "Login Now",
+        cancelButtonText: "Maybe Later",
+      }).then((result) => {
+        if (result.isConfirmed) {
+          navigate("/login");
+        }
+      });
       return;
     }
 
     setToastMessage("Item added to cart successfully.");
   };
 
+  // ✅ Wishlist / Favorites
   const handleWishlist = (product) => {
     const success = toggleWishlist(product);
 
     if (!success) {
-      setToastMessage("Please login to use wishlist.");
-      setTimeout(() => navigate("/login"), 1200);
+      Swal.fire({
+        title: "Sign In Required",
+        text: "Please sign in to access this feature.",
+        icon: "info",
+        background: "#111",
+        color: "#ffffff",
+        showCancelButton: true,
+        confirmButtonText: "Login Now",
+        cancelButtonText: "Maybe Later",
+      }).then((result) => {
+        if (result.isConfirmed) {
+          navigate("/login");
+        }
+      });
+
       return;
     }
 
