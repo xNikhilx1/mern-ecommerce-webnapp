@@ -120,6 +120,9 @@ app.post("/create-payment-order", async (req, res) => {
 });
 
 // ================= VERIFY PAYMENT =================
+
+
+   // ================= VERIFY PAYMENT =================
 app.post("/verify-payment", auth, async (req, res) => {
   try {
     const {
@@ -127,22 +130,28 @@ app.post("/verify-payment", auth, async (req, res) => {
       razorpay_payment_id,
       razorpay_signature,
       products,
+      shippingAddress,
       amount,
     } = req.body;
 
+    // 1️⃣ Verify Razorpay signature
     const generated_signature = crypto
       .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
       .update(razorpay_order_id + "|" + razorpay_payment_id)
       .digest("hex");
 
     if (generated_signature !== razorpay_signature) {
-      return res.status(400).json({ message: "Invalid payment signature ❌" });
+      return res.status(400).json({
+        message: "Invalid payment signature",
+      });
     }
 
+    // 2️⃣ Save order to database
     const newOrder = new Order({
       userId: req.user.id,
       products,
       totalAmount: amount,
+      shippingAddress,
       paymentStatus: "Paid",
       orderStatus: "Processing",
       paymentId: razorpay_payment_id,
@@ -150,27 +159,52 @@ app.post("/verify-payment", auth, async (req, res) => {
 
     await newOrder.save();
 
-    // ===== SEND EMAIL =====
-    const user = await User.findById(req.user.id);
+    // 3️⃣ Send confirmation email (safe block)
+    try {
+      const user = await User.findById(req.user.id);
 
-    await resend.emails.send({
-      from: "onboarding@resend.dev",
-      to: user.email,
-      subject: "Order Confirmed - WebnApp 🎉",
-      html: `
-        <h2>Thank you for your order!</h2>
-        <p>Payment successful.</p>
-        <p><strong>Payment ID:</strong> ${razorpay_payment_id}</p>
-        <p>Total Amount: ₹ ${amount}</p>
-      `,
+      if (user?.email) {
+        await resend.emails.send({
+          from: "onboarding@resend.dev",
+          to: user.email,
+          subject: "Order Confirmed - WebnApp 🎉",
+          html: `
+            <h2>Thank you for your order!</h2>
+            <p><strong>Total:</strong> ₹ ${amount}</p>
+            <p><strong>Payment ID:</strong> ${razorpay_payment_id}</p>
+            <p>Your order is being processed.</p>
+          `,
+        });
+      }
+    } catch (emailError) {
+      console.log("Email failed but order saved:", emailError.message);
+    }
+
+    // 4️⃣ Final success response
+    res.json({
+      message: "Payment verified & order saved",
     });
 
-    res.json({ message: "Payment verified & order saved ✅" });
   } catch (error) {
     console.log("VERIFY PAYMENT ERROR:", error);
-    res.status(500).json({ message: "Payment verification failed ❌" });
+    res.status(500).json({
+      message: "Payment verification failed",
+    });
   }
 });
+ // ================= GET MY ORDERS =================
+    app.get("/my-orders", auth, async (req, res) => {
+      try {
+        const orders = await Order.find({ userId: req.user.id })
+          .sort({ createdAt: -1 })
+          .populate("products.productId");
+
+        res.json(orders);
+      } catch (error) {
+        console.log(error);
+        res.status(500).json({ message: "Failed to fetch orders" });
+      }
+    });
 
 // ================= START SERVER =================
 const PORT = process.env.PORT || 5000;
