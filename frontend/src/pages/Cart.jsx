@@ -31,16 +31,18 @@ function Cart() {
   return (
     <div style={styles.wrapper}>
       <div style={styles.container}>
+        {/* LEFT SIDE */}
         <div style={styles.left}>
-          <h2>Shopping Cart</h2>
+          <h2 style={{ marginBottom: "20px" }}>Shopping Cart</h2>
 
           {cart.map((item) => (
             <div key={item._id} style={styles.productCard}>
-              <img src={item.image} style={styles.image} />
-              <div style={{ flex: 1 }}>
-                <h4>{item.name}</h4>
+              <img src={item.image} alt={item.name} style={styles.image} />
+
+              <div style={styles.productInfo}>
+                <h4 style={{ marginBottom: "6px" }}>{item.name}</h4>
                 <p>₹ {item.price}</p>
-                <p>Quantity: {item.quantity}</p>
+                <p style={{ opacity: 0.7 }}>Quantity: {item.quantity}</p>
 
                 <button
                   style={styles.removeBtn}
@@ -53,8 +55,9 @@ function Cart() {
           ))}
         </div>
 
+        {/* RIGHT SIDE */}
         <div style={styles.right}>
-          <h3>Order Summary</h3>
+          <h3 style={{ marginBottom: "20px" }}>Order Summary</h3>
 
           <div style={styles.row}>
             <span>Subtotal</span>
@@ -66,7 +69,7 @@ function Cart() {
             <span>₹ {tax.toFixed(2)}</span>
           </div>
 
-          <hr />
+          <hr style={{ margin: "15px 0", opacity: 0.2 }} />
 
           <div style={styles.total}>
             <span>Total</span>
@@ -85,21 +88,34 @@ function Cart() {
   );
 }
 
+/* ================= STYLES ================= */
+
 const styles = {
   wrapper: {
-    padding: "120px 8%",
+    padding: "100px 5%",
     background: "#000",
     color: "#fff",
     minHeight: "100vh",
   },
-  container: { display: "flex", gap: "40px" },
-  left: { flex: 2 },
+
+  container: {
+    display: "flex",
+    gap: "40px",
+    flexWrap: "wrap", // ✅ allows stacking on mobile
+  },
+
+  left: {
+    flex: "2 1 500px", // ✅ responsive grow/shrink
+  },
+
   right: {
-    flex: 1,
+    flex: "1 1 300px",
     background: "#111",
     padding: "25px",
     borderRadius: "12px",
+    minWidth: "280px",
   },
+
   productCard: {
     display: "flex",
     gap: "20px",
@@ -107,19 +123,34 @@ const styles = {
     padding: "20px",
     marginBottom: "20px",
     borderRadius: "12px",
+    flexWrap: "wrap", // ✅ stack image + content on small screen
   },
-  image: { width: "100px", borderRadius: "8px" },
+
+  image: {
+    width: "100px",
+    height: "100px",
+    objectFit: "cover",
+    borderRadius: "8px",
+  },
+
+  productInfo: {
+    flex: 1,
+    minWidth: "200px",
+  },
+
   row: {
     display: "flex",
     justifyContent: "space-between",
     marginBottom: "10px",
   },
+
   total: {
     display: "flex",
     justifyContent: "space-between",
     fontWeight: "bold",
     fontSize: "18px",
   },
+
   primaryBtn: {
     marginTop: "20px",
     padding: "14px",
@@ -128,18 +159,20 @@ const styles = {
     cursor: "pointer",
     fontWeight: "bold",
     borderRadius: "6px",
+    width: "100%",
   },
+
   removeBtn: {
     marginTop: "10px",
-    background: "red",
+    background: "#ff3b3b",
     border: "none",
-    padding: "6px 12px",
+    padding: "8px 14px",
     cursor: "pointer",
+    color: "#fff",
+    borderRadius: "6px",
   },
-  empty: {
-    padding: "120px",
-    textAlign: "center",
-  },
+
+  /* Empty Cart */
   emptyWrapper: {
     minHeight: "80vh",
     display: "flex",
@@ -150,9 +183,10 @@ const styles = {
   emptyCard: {
     textAlign: "center",
     background: "#111",
-    padding: "60px",
+    padding: "50px",
     borderRadius: "16px",
-    width: "400px",
+    width: "90%",
+    maxWidth: "400px",
     boxShadow: "0 0 30px rgba(0,0,0,0.5)",
   },
 
