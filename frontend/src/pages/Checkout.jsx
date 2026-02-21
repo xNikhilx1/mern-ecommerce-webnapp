@@ -22,9 +22,7 @@ function Checkout() {
   const total = subtotal + tax;
 
   useEffect(() => {
-    if (!token) {
-      navigate("/login");
-    }
+    if (!token) navigate("/login");
   }, [token, navigate]);
 
   if (cart.length === 0) {
@@ -40,13 +38,6 @@ function Checkout() {
       setError("");
       setLoading(true);
 
-      if (!window.Razorpay) {
-        setError("Payment system not loaded. Please refresh.");
-        setLoading(false);
-        return;
-      }
-
-      // 🔥 STEP 1: Create Razorpay order from backend
       const orderRes = await axios.post(`${API_URL}/create-payment-order`, {
         amount: total,
       });
@@ -62,7 +53,6 @@ function Checkout() {
         order_id,
         handler: async function (response) {
           try {
-            // 🔥 STEP 2: Verify payment
             await axios.post(
               `${API_URL}/verify-payment`,
               {
@@ -73,8 +63,7 @@ function Checkout() {
                   productId: item._id,
                   quantity: item.quantity,
                 })),
-                paymentMethod: "Razorpay",
-                amount: total, // ✅ IMPORTANT
+                amount: total,
               },
               {
                 headers: {
@@ -83,17 +72,14 @@ function Checkout() {
               },
             );
 
-            // 🔥 STEP 3: Clear cart & redirect
             clearCart();
             navigate("/success");
           } catch (err) {
-            console.error("Verification error:", err.response?.data || err);
+            console.error(err.response?.data || err);
             setError("Payment verification failed.");
           }
         },
-        theme: {
-          color: "#f0c14b",
-        },
+        theme: { color: "#f0c14b" },
       };
 
       const rzp = new window.Razorpay(options);
@@ -101,7 +87,7 @@ function Checkout() {
 
       setLoading(false);
     } catch (err) {
-      console.error("Payment error:", err.response?.data || err);
+      console.error(err.response?.data || err);
       setError("Payment failed. Please try again.");
       setLoading(false);
     }
@@ -114,20 +100,9 @@ function Checkout() {
 
         {error && <p style={styles.error}>{error}</p>}
 
-        <div style={styles.row}>
-          <span>Subtotal</span>
-          <span>₹ {subtotal.toFixed(2)}</span>
-        </div>
-
-        <div style={styles.row}>
-          <span>Tax (18%)</span>
-          <span>₹ {tax.toFixed(2)}</span>
-        </div>
-
-        <div style={styles.total}>
-          <span>Total</span>
-          <span>₹ {total.toFixed(2)}</span>
-        </div>
+        <p>Subtotal: ₹ {subtotal.toFixed(2)}</p>
+        <p>Tax: ₹ {tax.toFixed(2)}</p>
+        <h3>Total: ₹ {total.toFixed(2)}</h3>
 
         <button
           style={styles.button}
@@ -158,18 +133,6 @@ const styles = {
     width: "100%",
     maxWidth: "420px",
   },
-  row: {
-    display: "flex",
-    justifyContent: "space-between",
-    marginBottom: "10px",
-  },
-  total: {
-    display: "flex",
-    justifyContent: "space-between",
-    fontWeight: "bold",
-    fontSize: "18px",
-    marginTop: "10px",
-  },
   button: {
     width: "100%",
     padding: "14px",
@@ -178,7 +141,7 @@ const styles = {
     cursor: "pointer",
     fontWeight: "bold",
     borderRadius: "6px",
-    marginTop: "20px",
+    marginTop: "15px",
   },
   error: {
     color: "red",

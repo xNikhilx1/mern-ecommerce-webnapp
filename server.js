@@ -95,72 +95,6 @@ app.post("/login", async (req, res) => {
   }
 });
 
-// ================= FORGOT PASSWORD =================
-app.post("/forgot-password", async (req, res) => {
-  try {
-    const { email } = req.body;
-
-    const user = await User.findOne({ email });
-    if (!user) return res.status(400).json({ message: "User not found ❌" });
-
-    const resetToken = crypto.randomBytes(32).toString("hex");
-
-    user.resetToken = resetToken;
-    user.resetTokenExpiry = Date.now() + 15 * 60 * 1000; // 15 mins
-    await user.save();
-
-    const resetLink = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
-
-    console.log("Reset Link:", resetLink);
-
-    await resend.emails.send({
-      from: "onboarding@resend.dev",
-      to: user.email,
-      subject: "Reset Your Password - WebnApp",
-      html: `
-        <h2>Password Reset</h2>
-        <p>Click below to reset your password:</p>
-        <a href="${resetLink}">${resetLink}</a>
-        <p>This link expires in 15 minutes.</p>
-      `,
-    });
-
-    res.json({ message: "Reset link sent to email ✅" });
-  } catch (error) {
-    console.log("FORGOT PASSWORD ERROR:", error);
-    res.status(500).json({ message: "Server error ❌" });
-  }
-});
-
-// ================= RESET PASSWORD =================
-app.post("/reset-password/:token", async (req, res) => {
-  try {
-    const { token } = req.params;
-    const { password } = req.body;
-
-    const user = await User.findOne({
-      resetToken: token,
-      resetTokenExpiry: { $gt: Date.now() },
-    });
-
-    if (!user)
-      return res.status(400).json({ message: "Invalid or expired token ❌" });
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    user.password = hashedPassword;
-    user.resetToken = undefined;
-    user.resetTokenExpiry = undefined;
-
-    await user.save();
-
-    res.json({ message: "Password reset successful ✅" });
-  } catch (error) {
-    console.log("RESET PASSWORD ERROR:", error);
-    res.status(500).json({ message: "Server error ❌" });
-  }
-});
-
 // ================= PRODUCTS =================
 app.get("/products", async (req, res) => {
   const products = await Product.find();
@@ -172,13 +106,11 @@ app.post("/create-payment-order", async (req, res) => {
   try {
     const { amount } = req.body;
 
-    const options = {
-      amount: amount * 100, // Razorpay expects paise
+    const order = await razorpay.orders.create({
+      amount: Math.round(amount * 100),
       currency: "INR",
-      receipt: `receipt_${Date.now()}`,
-    };
-
-    const order = await razorpay.orders.create(options);
+      receipt: "receipt_" + Date.now(),
+    });
 
     res.json(order);
   } catch (error) {
@@ -195,7 +127,7 @@ app.post("/verify-payment", auth, async (req, res) => {
       razorpay_payment_id,
       razorpay_signature,
       products,
-      paymentMethod,
+      amount,
     } = req.body;
 
     const generated_signature = crypto
@@ -206,16 +138,19 @@ app.post("/verify-payment", auth, async (req, res) => {
     if (generated_signature !== razorpay_signature) {
       return res.status(400).json({ message: "Invalid payment signature ❌" });
     }
-const newOrder = new Order({
-  userId: req.user.id, // ✅ FIXED
-  products,
-  totalAmount: req.body.amount,
-  paymentStatus: "Paid",
-  paymentId: razorpay_payment_id, // also fix field name
-});
+
+    const newOrder = new Order({
+      userId: req.user.id,
+      products,
+      totalAmount: amount,
+      paymentStatus: "Paid",
+      orderStatus: "Processing",
+      paymentId: razorpay_payment_id,
+    });
 
     await newOrder.save();
-    // 🔥 SEND ORDER CONFIRMATION EMAIL
+
+    // ===== SEND EMAIL =====
     const user = await User.findById(req.user.id);
 
     await resend.emails.send({
@@ -223,12 +158,11 @@ const newOrder = new Order({
       to: user.email,
       subject: "Order Confirmed - WebnApp 🎉",
       html: `
-    <h2>Thank you for your order!</h2>
-    <p>Your payment was successful.</p>
-    <p><strong>Payment ID:</strong> ${razorpay_payment_id}</p>
-    <p>Total Amount: ₹ ${req.body.amount}</p>
-    <p>We’ll deliver your order soon.</p>
-  `,
+        <h2>Thank you for your order!</h2>
+        <p>Payment successful.</p>
+        <p><strong>Payment ID:</strong> ${razorpay_payment_id}</p>
+        <p>Total Amount: ₹ ${amount}</p>
+      `,
     });
 
     res.json({ message: "Payment verified & order saved ✅" });
@@ -237,6 +171,7 @@ const newOrder = new Order({
     res.status(500).json({ message: "Payment verification failed ❌" });
   }
 });
+
 // ================= START SERVER =================
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on ${PORT}`));
