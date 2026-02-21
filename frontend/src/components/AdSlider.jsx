@@ -23,7 +23,6 @@ const slides = [
   },
 ];
 
-
 function AdSlider() {
   const [index, setIndex] = useState(0);
   const navigate = useNavigate();

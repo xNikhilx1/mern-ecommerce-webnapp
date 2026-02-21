@@ -6,7 +6,7 @@ import axios from "axios";
 const API_URL =
   import.meta.env.MODE === "development"
     ? "http://localhost:5000"
-    : "https://webnapp-backend.onrender.com";
+    : "https://webnapp-backend.onrender.com"; // 🔥 PUT YOUR EXACT RENDER URL HERE (NO TRAILING SLASH)
 
 function Checkout() {
   const { cart, getTotal, clearCart } = useCart();
@@ -15,11 +15,11 @@ function Checkout() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  const token = localStorage.getItem("token");
+
   const subtotal = getTotal();
   const tax = subtotal * 0.18;
   const total = subtotal + tax;
-
-  const token = localStorage.getItem("token");
 
   useEffect(() => {
     if (!token) navigate("/login");
@@ -35,15 +35,16 @@ function Checkout() {
 
   const handlePayment = async () => {
     try {
+      setError("");
+      setLoading(true);
+
       if (!window.Razorpay) {
-        setError("Payment system not loaded. Refresh page.");
+        setError("Payment system not loaded. Please refresh.");
+        setLoading(false);
         return;
       }
 
-      setLoading(true);
-      setError("");
-
-      // ✅ CORRECT API CALL
+      // 🔥 CREATE ORDER FROM BACKEND
       const orderRes = await axios.post(`${API_URL}/create-payment-order`, {
         amount: total,
       });
@@ -58,23 +59,32 @@ function Checkout() {
         description: "Order Payment",
         order_id,
         handler: async function (response) {
-          await axios.post(
-            `${API_URL}/verify-payment`,
-            {
-              razorpay_order_id: response.razorpay_order_id,
-              razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_signature: response.razorpay_signature,
-              products: cart.map((item) => ({
-                productId: item._id,
-                quantity: item.quantity,
-              })),
-              paymentMethod: "Razorpay",
-            },
-            { headers: { Authorization: `Bearer ${token}` } },
-          );
+          try {
+            await axios.post(
+              `${API_URL}/verify-payment`,
+              {
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+                products: cart.map((item) => ({
+                  productId: item._id,
+                  quantity: item.quantity,
+                })),
+                paymentMethod: "Razorpay",
+              },
+              {
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                },
+              },
+            );
 
-          clearCart();
-          navigate("/success");
+            clearCart();
+            navigate("/success");
+          } catch (err) {
+            console.error("Verification failed:", err);
+            setError("Payment verification failed.");
+          }
         },
         theme: { color: "#f0c14b" },
       };
@@ -84,7 +94,7 @@ function Checkout() {
 
       setLoading(false);
     } catch (err) {
-      console.error(err);
+      console.error("Payment error:", err);
       setError("Payment failed. Please try again.");
       setLoading(false);
     }
@@ -95,7 +105,7 @@ function Checkout() {
       <div style={styles.card}>
         <h2>Order Summary</h2>
 
-        {error && <p style={{ color: "red" }}>{error}</p>}
+        {error && <p style={styles.error}>{error}</p>}
 
         <p>Subtotal: ₹ {subtotal.toFixed(2)}</p>
         <p>Tax: ₹ {tax.toFixed(2)}</p>
@@ -115,20 +125,20 @@ function Checkout() {
 
 const styles = {
   wrapper: {
-  padding: "100px 16px",
-  background: "#000",
-  color: "#fff",
-  minHeight: "100vh",
-  display: "flex",
-  justifyContent: "center",
-  alignItems: "center",
-},
+    padding: "100px 16px",
+    background: "#000",
+    color: "#fff",
+    minHeight: "100vh",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+  },
   card: {
     background: "#111",
     padding: "24px",
     borderRadius: "12px",
     width: "100%",
-    maxWidth: "400px",
+    maxWidth: "420px",
   },
   button: {
     width: "100%",
@@ -139,6 +149,10 @@ const styles = {
     fontWeight: "bold",
     borderRadius: "6px",
     marginTop: "15px",
+  },
+  error: {
+    color: "red",
+    marginBottom: "10px",
   },
 };
 

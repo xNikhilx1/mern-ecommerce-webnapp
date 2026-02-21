@@ -1,3 +1,15 @@
+* {
+  box-sizing: border-box;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+body {
+  overflow-x: hidden;
+}
 /* ===== RESET ===== */
 * {
   margin: 0;
