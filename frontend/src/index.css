@@ -121,3 +121,15 @@ button {
   border-radius: 10px !important;
   border: 1px solid #333 !important;
 }
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  overflow-x: hidden;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
