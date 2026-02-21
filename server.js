@@ -158,27 +158,26 @@ app.post("/verify-payment", auth, async (req, res) => {
     });
 
     await newOrder.save();
+try {
+  const user = await User.findById(req.user.id);
 
-    // 3️⃣ Send confirmation email (safe block)
-    try {
-      const user = await User.findById(req.user.id);
+  if (!user?.email) return;
 
-      if (user?.email) {
-        await resend.emails.send({
-          from: "onboarding@resend.dev",
-          to: user.email,
-          subject: "Order Confirmed - WebnApp 🎉",
-          html: `
-            <h2>Thank you for your order!</h2>
-            <p><strong>Total:</strong> ₹ ${amount}</p>
-            <p><strong>Payment ID:</strong> ${razorpay_payment_id}</p>
-            <p>Your order is being processed.</p>
-          `,
-        });
-      }
-    } catch (emailError) {
-      console.log("Email failed but order saved:", emailError.message);
-    }
+  const emailResponse = await resend.emails.send({
+    from: "WebnApp <onboarding@resend.dev>",
+    to: user.email,
+    subject: "Order Confirmed 🎉",
+    html: `
+      <h2>Thank you for your order!</h2>
+      <p>Total: ₹ ${amount}</p>
+      <p>Payment ID: ${razorpay_payment_id}</p>
+    `,
+  });
+
+  console.log("Email sent:", emailResponse);
+} catch (err) {
+  console.log("Email error:", err);
+}
 
     // 4️⃣ Final success response
     res.json({
