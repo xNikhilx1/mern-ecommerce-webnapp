@@ -206,15 +206,13 @@ app.post("/verify-payment", auth, async (req, res) => {
     if (generated_signature !== razorpay_signature) {
       return res.status(400).json({ message: "Invalid payment signature ❌" });
     }
-
-    const newOrder = new Order({
-      user: req.user.id,
-      products,
-      totalAmount: req.body.amount,
-      paymentMethod,
-      paymentStatus: "Paid",
-      razorpayPaymentId: razorpay_payment_id,
-    });
+const newOrder = new Order({
+  userId: req.user.id, // ✅ FIXED
+  products,
+  totalAmount: req.body.amount,
+  paymentStatus: "Paid",
+  paymentId: razorpay_payment_id, // also fix field name
+});
 
     await newOrder.save();
     // 🔥 SEND ORDER CONFIRMATION EMAIL

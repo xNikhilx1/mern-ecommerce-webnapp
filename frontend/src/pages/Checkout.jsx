@@ -6,7 +6,7 @@ import axios from "axios";
 const API_URL =
   import.meta.env.MODE === "development"
     ? "http://localhost:5000"
-    : "https://webnapp-backend.onrender.com"; // 🔥 PUT YOUR EXACT RENDER URL HERE (NO TRAILING SLASH)
+    : "https://webnapp-backend.onrender.com";
 
 function Checkout() {
   const { cart, getTotal, clearCart } = useCart();
@@ -22,7 +22,9 @@ function Checkout() {
   const total = subtotal + tax;
 
   useEffect(() => {
-    if (!token) navigate("/login");
+    if (!token) {
+      navigate("/login");
+    }
   }, [token, navigate]);
 
   if (cart.length === 0) {
@@ -44,7 +46,7 @@ function Checkout() {
         return;
       }
 
-      // 🔥 CREATE ORDER FROM BACKEND
+      // 🔥 STEP 1: Create Razorpay order from backend
       const orderRes = await axios.post(`${API_URL}/create-payment-order`, {
         amount: total,
       });
@@ -60,6 +62,7 @@ function Checkout() {
         order_id,
         handler: async function (response) {
           try {
+            // 🔥 STEP 2: Verify payment
             await axios.post(
               `${API_URL}/verify-payment`,
               {
@@ -71,6 +74,7 @@ function Checkout() {
                   quantity: item.quantity,
                 })),
                 paymentMethod: "Razorpay",
+                amount: total, // ✅ IMPORTANT
               },
               {
                 headers: {
@@ -79,14 +83,17 @@ function Checkout() {
               },
             );
 
+            // 🔥 STEP 3: Clear cart & redirect
             clearCart();
             navigate("/success");
           } catch (err) {
-            console.error("Verification failed:", err);
+            console.error("Verification error:", err.response?.data || err);
             setError("Payment verification failed.");
           }
         },
-        theme: { color: "#f0c14b" },
+        theme: {
+          color: "#f0c14b",
+        },
       };
 
       const rzp = new window.Razorpay(options);
@@ -94,7 +101,7 @@ function Checkout() {
 
       setLoading(false);
     } catch (err) {
-      console.error("Payment error:", err);
+      console.error("Payment error:", err.response?.data || err);
       setError("Payment failed. Please try again.");
       setLoading(false);
     }
@@ -107,9 +114,20 @@ function Checkout() {
 
         {error && <p style={styles.error}>{error}</p>}
 
-        <p>Subtotal: ₹ {subtotal.toFixed(2)}</p>
-        <p>Tax: ₹ {tax.toFixed(2)}</p>
-        <h3>Total: ₹ {total.toFixed(2)}</h3>
+        <div style={styles.row}>
+          <span>Subtotal</span>
+          <span>₹ {subtotal.toFixed(2)}</span>
+        </div>
+
+        <div style={styles.row}>
+          <span>Tax (18%)</span>
+          <span>₹ {tax.toFixed(2)}</span>
+        </div>
+
+        <div style={styles.total}>
+          <span>Total</span>
+          <span>₹ {total.toFixed(2)}</span>
+        </div>
 
         <button
           style={styles.button}
@@ -140,6 +158,18 @@ const styles = {
     width: "100%",
     maxWidth: "420px",
   },
+  row: {
+    display: "flex",
+    justifyContent: "space-between",
+    marginBottom: "10px",
+  },
+  total: {
+    display: "flex",
+    justifyContent: "space-between",
+    fontWeight: "bold",
+    fontSize: "18px",
+    marginTop: "10px",
+  },
   button: {
     width: "100%",
     padding: "14px",
@@ -148,7 +178,7 @@ const styles = {
     cursor: "pointer",
     fontWeight: "bold",
     borderRadius: "6px",
-    marginTop: "15px",
+    marginTop: "20px",
   },
   error: {
     color: "red",
